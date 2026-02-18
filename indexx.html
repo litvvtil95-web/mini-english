@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Mini English</title>
+<style>
+body { font-family: Arial; text-align: center; background: #f2f2f2; padding: 20px; }
+.card { background: white; padding: 25px; border-radius: 15px; max-width: 400px; margin: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+button { display: block; width: 100%; margin: 10px 0; padding: 12px; border-radius: 10px; border: none; background: #4CAF50; color: white; font-size: 16px; }
+.small { background: #2196F3; }
+#result { margin-top: 10px; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Mini English</h2>
+  <div id="level"></div>
+  <h1 id="word"></h1>
+  <button class="small" onclick="speakWord()">🔊 Произношение</button>
+  <div id="answers"></div>
+  <div id="result"></div>
+  <div id="progress"></div>
+  <button onclick="nextWord()">Следующее слово</button>
+</div>
+
+<script>
+let words = [
+  {word: "Improve", correct: "Улучшать", options: ["Улучшать","Ухудшать","Покупать"]},
+  {word: "Achieve", correct: "Достигать", options: ["Терять","Достигать","Забывать"]},
+  {word: "Increase", correct: "Увеличивать", options: ["Уменьшать","Увеличивать","Падать"]},
+  {word: "Support", correct: "Поддерживать", options: ["Бросать","Поддерживать","Прятать"]},
+  {word: "Develop", correct: "Развивать", options: ["Разрушать","Развивать","Игнорировать"]}
+];
+
+let current = 0;
+let score = parseInt(localStorage.getItem("score")) || 0;
+let totalAnswered = parseInt(localStorage.getItem("totalAnswered")) || 0;
+
+function loadWord() {
+  document.getElementById("word").innerText = words[current].word;
+  let answersDiv = document.getElementById("answers");
+  answersDiv.innerHTML = "";
+  words[current].options.forEach(option => {
+    let btn = document.createElement("button");
+    btn.innerText = option;
+    btn.onclick = function() { checkAnswer(option); };
+    answersDiv.appendChild(btn);
+  });
+  updateInfo();
+}
+
+function checkAnswer(answer) {
+  totalAnswered++;
+  if(answer === words[current].correct) {
+    score++;
+    document.getElementById("result").innerText = "✅ Правильно!";
+  } else {
+    document.getElementById("result").innerText = "❌ Неправильно";
+  }
+  localStorage.setItem("score", score);
+  localStorage.setItem("totalAnswered", totalAnswered);
+  updateInfo();
+}
+
+function nextWord() {
+  current++;
+  if(current >= words.length) current = 0;
+  document.getElementById("result").innerText = "";
+  loadWord();
+}
+
+function updateInfo() {
+  let percent = totalAnswered === 0 ? 0 : Math.round((score/totalAnswered)*100);
+  let level = "Beginner";
+  if(percent >= 70) level = "Intermediate";
+  if(percent >= 90) level = "Advanced";
+  document.getElementById("progress").innerText =
+    "Очки: " + score + " | Ответов: " + totalAnswered + " | Точность: " + percent + "%";
+  document.getElementById("level").innerText = "Уровень: " + level;
+}
+
+function speakWord() {
+  let utterance = new SpeechSynthesisUtterance(words[current].word);
+  utterance.lang = "en-US";
+  speechSynthesis.speak(utterance);
+}
+
+loadWord();
+</script>
+
+</body>
+</html>
